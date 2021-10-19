@@ -6,14 +6,14 @@ include_guard(GLOBAL)
 
 set(VPU_SUPPORTED_FIRMWARES usb-ma2x8x pcie-ma2x8x)
 set(VPU_SUPPORTED_FIRMWARES_HASH
-    "73db2a7401b4efcaf7513bdeeccc601ac79a67db5c11b28b8fc49cd69833a72c"
-    "ead8b3a2783a1ce4a53607f0dade3ee1233b65b48ae46cc98f8638b7aaceb2a1")
+    "bc3bce6a73e4f1ba455cb082820cde1f4a45c0ecb88568b5a6d46a87b83ae267"
+    "31e3d81411034782a66e41bd3e3f369cdc84e95592c14719821cfe63a9341a7c")
 
 #
 # Default packages
 #
 
-set(FIRMWARE_PACKAGE_VERSION 1795)
+set(FIRMWARE_PACKAGE_VERSION 1797)
 set(VPU_CLC_MA2X8X_VERSION "movi-cltools-20.09.2")
 
 #
