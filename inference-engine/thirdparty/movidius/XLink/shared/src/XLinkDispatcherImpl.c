@@ -177,6 +177,17 @@ int dispatcherLocalEventGetResponse(xLinkEvent_t* event, xLinkEvent_t* response)
         case XLINK_CREATE_STREAM_REQ:
         {
             XLINK_EVENT_ACKNOWLEDGE(event);
+#ifdef __PC__
+            event->header.streamId = XLinkAddOrUpdateStream(event->deviceHandle.xLinkFD,
+                                                            event->header.streamName,
+                                                            event->header.size, 0,
+                                                            INVALID_STREAM_ID);
+            mvLog(MVLOG_DEBUG, "XLINK_CREATE_STREAM_REQ - stream has been just opened with id %ld\n",
+                  event->header.streamId);
+#else
+            mvLog(MVLOG_DEBUG, "XLINK_CREATE_STREAM_REQ - do nothing. Stream will be "
+                  "opened with forced id accordingly to response from the host\n");
+#endif
             mvLog(MVLOG_DEBUG,"XLINK_CREATE_STREAM_REQ - do nothing\n");
             break;
         }
@@ -294,10 +305,17 @@ int dispatcherRemoteEventGetResponse(xLinkEvent_t* event, xLinkEvent_t* response
             XLINK_EVENT_ACKNOWLEDGE(response);
             response->header.type = XLINK_CREATE_STREAM_RESP;
             //write size from remote means read size for this peer
+#ifndef __PC__
+            response->header.streamId = XLinkAddOrUpdateStream(event->deviceHandle.xLinkFD,
+                                                               event->header.streamName,
+                                                               0, event->header.size,
+                                                               event->header.streamId);
+#else
             response->header.streamId = XLinkAddOrUpdateStream(event->deviceHandle.xLinkFD,
                                                                event->header.streamName,
                                                                0, event->header.size,
                                                                INVALID_STREAM_ID);
+#endif
 
             if (response->header.streamId == INVALID_STREAM_ID) {
                 response->header.flags.bitField.ack = 0;
@@ -377,12 +395,17 @@ int dispatcherRemoteEventGetResponse(xLinkEvent_t* event, xLinkEvent_t* response
         case XLINK_CREATE_STREAM_RESP:
         {
             // write_size from the response the size of the buffer from the remote
+#ifndef __PC__
             response->header.streamId = XLinkAddOrUpdateStream(event->deviceHandle.xLinkFD,
                                                                event->header.streamName,
                                                                event->header.size, 0,
                                                                event->header.streamId);
             XLINK_RET_IF(response->header.streamId
                 == INVALID_STREAM_ID);
+            mvLog(MVLOG_DEBUG, "XLINK_CREATE_STREAM_REQ - stream has been just opened "
+                  "with forced id=%ld accordingly to response from the host\n",
+                  response->header.streamId);
+#endif
             response->deviceHandle = event->deviceHandle;
             break;
         }
