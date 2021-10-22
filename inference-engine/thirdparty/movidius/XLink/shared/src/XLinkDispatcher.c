@@ -719,23 +719,24 @@ static int dispatcherRequestServe(xLinkEventPriv_t * event, xLinkSchedulerState_
     XLINK_RET_IF(curr == NULL);
     XLINK_RET_IF(!isEventTypeRequest(event));
     xLinkEventHeader_t *header = &event->packet.header;
-    XLINK_RET_ERR_IF(pthread_mutex_lock(&(curr->queueMutex)) != 0, 1);
     if (header->flags.bitField.block){ //block is requested
+        XLINK_RET_ERR_IF(pthread_mutex_lock(&(curr->queueMutex)) != 0, 1);
         event->isServed = EVENT_BLOCKED;
+        XLINK_RET_ERR_IF(pthread_mutex_unlock(&(curr->queueMutex)) != 0, 1);
     } else if(header->flags.bitField.localServe == 1 ||
               (header->flags.bitField.ack == 0
                && header->flags.bitField.nack == 1)){ //this event is served locally, or it is failed
         postAndMarkEventServed(event);
     }else if (header->flags.bitField.ack == 1
               && header->flags.bitField.nack == 0){
+        XLINK_RET_ERR_IF(pthread_mutex_lock(&(curr->queueMutex)) != 0, 1);
         event->isServed = EVENT_PENDING;
+        XLINK_RET_ERR_IF(pthread_mutex_unlock(&(curr->queueMutex)) != 0, 1);
         mvLog(MVLOG_DEBUG,"------------------------UNserved %s\n",
               TypeToStr(event->packet.header.type));
     }else{
-        XLINK_RET_ERR_IF(pthread_mutex_unlock(&(curr->queueMutex)) != 0, 1);
         return 1;
     }
-    XLINK_RET_ERR_IF(pthread_mutex_unlock(&(curr->queueMutex)) != 0, 1);
     return 0;
 }
 
