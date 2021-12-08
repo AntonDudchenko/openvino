@@ -38,7 +38,7 @@
 #include "XLinkErrorUtils.h"
 
 #define MVLOG_UNIT_NAME xLink
-#define XLINK_THREADS_PRIORITY 0
+#define XLINK_THREADS_PRIORITY 1
 #include "XLinkLog.h"
 
 // ------------------------------------
