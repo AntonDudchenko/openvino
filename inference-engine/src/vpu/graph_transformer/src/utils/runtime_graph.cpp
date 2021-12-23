@@ -9,6 +9,7 @@
 #include <exec_graph_info.hpp>
 #include <ngraph/variant.hpp>
 #include <ngraph/ngraph.hpp>
+#include <ngraph/type/element_type.hpp>
 
 #include <vector>
 #include <map>
@@ -66,6 +67,8 @@ std::shared_ptr<ngraph::Function> buildRuntimeGraph(GraphMetaInfo& graphMetaInfo
             const auto outSize = stageMetaIndexToNode[prIndex]->get_output_size();
             stageMetaIndexToNode[prIndex]->set_output_size(outSize + 1);
             stageMetaIndexToNode[prIndex]->set_output_type(outSize, InferenceEngine::details::convertPrecision(precision), ngraph::PartialShape(dims));
+            // std::cout << "For stage " << stageMeta.stageName << " with type " << stageMeta.stageType <<" input name " <<
+            //                              graphMetaInfo.stagesMeta[prIndex].stageName << " with precision " << precision << "\n";
             inputs.push_back(stageMetaIndexToNode[prIndex]->output(outSize));
         }
         return inputs;
@@ -75,10 +78,16 @@ std::shared_ptr<ngraph::Function> buildRuntimeGraph(GraphMetaInfo& graphMetaInfo
         const auto stageMeta = graphMetaInfo.stagesMeta[index];
 
         const auto inputs = getInputs(stageMeta);
-
         std::shared_ptr<ngraph::Node> node;
-        if (stageMeta.stageType == "Input") {
+        std::cout << stageMeta.layerType << "\n";
+        if (stageMeta.layerType == "Input") {
             params.emplace_back(std::make_shared<ngraph::op::Parameter>());
+            for (const auto& outPrecision : stageMeta.outPrecisions) {
+                if (outPrecision == Precision::FP32) {
+                    params.back()->set_element_type(InferenceEngine::details::convertPrecision(Precision::FP32));
+                    break;
+                }
+            }
             node = params.back();
         } else if (stageMeta.childrenNum == 0) {
             results.emplace_back(std::make_shared<ngraph::op::Result>(inputs.back()));
